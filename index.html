@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Supremacy 1914</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; padding: 10px; line-height: 1.6; }
+        .container { max-width: 500px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+        h2 { color: #ff9800; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #bbb; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 16px; outline: none; box-sizing: border-box; }
+        input:focus { border-color: #ff9800; }
+        button { width: 100%; padding: 15px; background: #ff9800; border: none; border-radius: 6px; color: #121212; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #e68a00; }
+        #res { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; background: #262626; border-left: 5px solid #ff9800; }
+        .alerta { background: #4a1515; color: #ff9999; padding: 10px; border-radius: 5px; font-size: 13px; margin-top: 15px; text-align: center; border: 1px solid #7a2020; }
+        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 8px 0; }
+        .val { font-weight: bold; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚔️ QG de Comando</h2>
+    
+    <div class="input-group">
+        <label>FORÇA DE ATAQUE (Ex: 143.1)</label>
+        <input type="number" id="atk" step="0.1" placeholder="Ver no painel do exército">
+    </div>
+
+    <div class="input-group">
+        <label>SEU HP ATUAL (Ex: 621.8)</label>
+        <input type="number" id="myhp" step="0.1" placeholder="Soma da vida das tropas">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="input-group">
+            <label>DEFESA INIMIGA</label>
+            <input type="number" id="def" step="0.1">
+        </div>
+        <div class="input-group">
+            <label>HP INIMIGO</label>
+            <input type="number" id="hpini" step="0.1">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>PROTEÇÃO DO FORTE (%)</label>
+        <input type="number" id="fort" value="0">
+    </div>
+
+    <button onclick="simular()">EXECUTAR SIMULAÇÃO</button>
+
+    <div id="res"></div>
+
+    <div class="alerta">
+        ⚠️ <b>LOGÍSTICA:</b> Se o Peixe/Grão zerar, a força cai 5-10% na virada do dia!
+    </div>
+</div>
+
+<script>
+function simular() {
+    const atk = parseFloat(document.getElementById('atk').value);
+    const myhp = parseFloat(document.getElementById('myhp').value);
+    const def = parseFloat(document.getElementById('def').value);
+    const hpini = parseFloat(document.getElementById('hpini').value);
+    const fort = parseFloat(document.getElementById('fort').value) / 100;
+
+    const resDiv = document.getElementById('res');
+    resDiv.style.display = 'block';
+
+    const danoReal = atk * (1 - fort);
+    const horas = Math.ceil(hpini / danoReal);
+    const perdaHP = horas * def;
+    const hpFinal = Math.max(0, myhp - perdaHP);
+    const soldadosPerdidos = Math.ceil(perdaHP / 20); // Média de 20 HP por soldado
+
+    let status = hpFinal > 0 ? "<span style='color:#4caf50'>VITÓRIA</span>" : "<span style='color:#f44336'>DERROTA</span>";
+
+    resDiv.innerHTML = `
+        <div style="text-align:center; font-weight:bold; font-size:18px; margin-bottom:10px;">${status}</div>
+        <div class="stat-row"><span>Dano Real p/ Hora:</span> <span class="val">${danoReal.toFixed(1)}</span></div>
+        <div class="stat-row"><span>Tempo de Batalha:</span> <span class="val">${horas}h</span></div>
+        <div class="stat-row"><span>HP Final Estimado:</span> <span class="val">${hpFinal.toFixed(1)}</span></div>
+        <div class="stat-row"><span>Baixas Estimadas:</span> <span class="val">${soldadosPerdidos} unidades</span></div>
+    `;
+}
+</script>
+</body>
+</html>
