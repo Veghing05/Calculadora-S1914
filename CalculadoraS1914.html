@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Guerra - Supremacy</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 15px; }
+        .card { background: #2d2d2d; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        h2 { color: #f39c12; text-align: center; }
+        label { display: block; margin-top: 10px; font-size: 14px; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: none; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #f39c12; border: none; border-radius: 5px; color: white; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        #resultado { margin-top: 20px; padding: 15px; background: #3d3d3d; border-radius: 5px; display: none; }
+        .win { color: #2ecc71; font-weight: bold; }
+        .loss { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>⚔️ Simulador de Batalha</h2>
+    
+    <label>Sua Força de Ataque (Ex: 143.1)</label>
+    <input type="number" id="meuAtaque" step="0.1" placeholder="143.1">
+
+    <label>Seu HP Atual (Ex: 621.8)</label>
+    <input type="number" id="meuHP" step="0.1" placeholder="621.8">
+
+    <hr style="margin-top:20px; border: 0.5px solid #555;">
+
+    <label>Defesa Inimiga (Ex: 71.2)</label>
+    <input type="number" id="inimigoDefesa" step="0.1" placeholder="71.2">
+
+    <label>HP Inimigo (Ex: 282.0)</label>
+    <input type="number" id="inimigoHP" step="0.1" placeholder="282.0">
+
+    <label>Proteção do Forte (%) (Ex: 42)</label>
+    <input type="number" id="protecao" placeholder="42">
+
+    <button onclick="calcular()">SIMULAR CONFRONTO</button>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+function calcular() {
+    let meuAtaque = parseFloat(document.getElementById('meuAtaque').value);
+    let meuHP = parseFloat(document.getElementById('meuHP').value);
+    let iniDef = parseFloat(document.getElementById('inimigoDefesa').value);
+    let iniHP = parseFloat(document.getElementById('inimigoHP').value);
+    let protecao = parseFloat(document.getElementById('protecao').value || 0) / 100;
+
+    let resDiv = document.getElementById('resultado');
+    resDiv.style.display = 'block';
+    
+    // Dano real com a redução do forte
+    let danoRealNoInimigo = meuAtaque * (1 - protecao);
+    let rodadas = Math.ceil(iniHP / danoRealNoInimigo);
+    let meuHPPendido = rodadas * iniDef;
+    let meuHPFinal = meuHP - meuHPPendido;
+
+    let html = `<h3>Relatório de Guerra:</h3>`;
+    html += `<p>Dano real por hora: <b>${danoRealNoInimigo.toFixed(1)}</b></p>`;
+    html += `<p>Tempo de luta: <b>${rodadas} horas</b></p>`;
+    
+    if (meuHPFinal > 0) {
+        html += `<p class="win">VITÓRIA PREVISTA!</p>`;
+        html += `<p>HP Final Estimado: <b>${meuHPFinal.toFixed(1)}</b></p>`;
+        html += `<p>Perda estimada: <b>${(meuHP - meuHPFinal).toFixed(1)} HP</b> (~${Math.round((meuHP - meuHPFinal)/20)} soldados)</p>`;
+    } else {
+        html += `<p class="loss">DERROTA PREVISTA!</p>`;
+        html += `<p>Seu exército será aniquilado antes de vencer.</p>`;
+    }
+
+    resDiv.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
