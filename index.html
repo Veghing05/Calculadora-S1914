@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S1914 - Tactical Intelligence</title>
+    <style>
+        :root { --accent: #ff9800; --bg: #0f0f0f; --card: #1a1a1a; --text: #e0e0e0; --win: #2ecc71; --loss: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 10px; font-size: 14px; margin: 0; }
+        .container { max-width: 500px; margin: auto; background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        h2 { color: var(--accent); text-align: center; font-size: 18px; margin: 0 0 15px 0; border-bottom: 1px solid var(--accent); padding-bottom: 8px; }
+        .section { background: #222; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #444; }
+        label { display: block; font-size: 10px; color: #888; font-weight: bold; margin-bottom: 3px; }
+        input { width: 100%; padding: 10px; background: #000; border: 1px solid #444; border-radius: 4px; color: #fff; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+        .btn-toggle { width: 100%; padding: 12px; background: #333; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-toggle.defesa { color: #3498db; border-color: #3498db; }
+        .btn-main { width: 100%; padding: 15px; background: var(--accent); border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: #000; font-size: 16px; }
+        #res { margin-top: 15px; padding: 12px; border-radius: 4px; display: none; background: #111; border: 1px solid #444; }
+        .stat { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #333; }
+        .log-container { margin-top: 10px; font-family: monospace; font-size: 11px; max-height: 120px; overflow-y: auto; background: #000; padding: 8px; color: #aaa; }
+        .win-text { color: var(--win); font-weight: bold; }
+        .loss-text { color: var(--loss); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚔️ CALCULADORA DE BOLSO v7.1</h2>
+
+    <button id="modeBtn" class="btn-toggle" onclick="toggleMode()">MODO: ATACANDO ⚔️</button>
+
+    <div class="section">
+        <label>PROTEÇÃO DO FORTE (%)</label>
+        <input type="number" id="fort" value="0" placeholder="Ex: 42">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="section">
+            <h4 style="margin:0; color:var(--accent); font-size:12px;">MINHAS TROPAS</h4>
+            <label>DANO TOTAL</label><input type="number" id="mAtk">
+            <label>HP TOTAL</label><input type="number" id="mHP">
+        </div>
+        <div class="section">
+            <h4 style="margin:0; color:var(--loss); font-size:12px;">INIMIGO</h4>
+            <label>DANO TOTAL</label><input type="number" id="iAtk">
+            <label>HP TOTAL</label><input type="number" id="iHP">
+        </div>
+    </div>
+
+    <button class="btn-main" onclick="runSim()">SIMULAR BATALHA</button>
+
+    <div id="res">
+        <div id="summary"></div>
+        <div class="log-container" id="log"></div>
+    </div>
+</div>
+
+<script>
+let isAttacking = true;
+function toggleMode() {
+    isAttacking = !isAttacking;
+    const btn = document.getElementById('modeBtn');
+    btn.innerText = isAttacking ? "MODO: ATACANDO ⚔️" : "MODO: DEFENDENDO 🛡️";
+    btn.className = isAttacking ? "btn-toggle" : "btn-toggle defesa";
+}
+
+function runSim() {
+    let mHP = parseFloat(document.getElementById('mHP').value);
+    let mAtkBase = parseFloat(document.getElementById('mAtk').value);
+    let iHP = parseFloat(document.getElementById('iHP').value);
+    let iAtkBase = parseFloat(document.getElementById('iAtk').value);
+    let fortPerc = parseFloat(document.getElementById('fort').value || 0) / 100;
+
+    let mHPMax = mHP, iHPMax = iHP, hr = 0, log = "";
+    const resDiv = document.getElementById('res');
+    resDiv.style.display = 'block';
+
+    while (mHP > 0 && iHP > 0 && hr < 100) {
+        hr++;
+        // Dano é proporcional à saúde atual das tropas
+        let curMAtk = mAtkBase * (mHP / mHPMax);
+        let curIAtk = iAtkBase * (iHP / iHPMax);
+
+        if (isAttacking) {
+            iHP -= (curMAtk * (1 - fortPerc));
+            mHP -= curIAtk;
+        } else {
+            iHP -= curMAtk;
+            mHP -= (curIAtk * (1 - fortPerc));
+        }
+        log += `Hr ${hr}: Eu ${Math.max(0, mHP).toFixed(0)} | Ini ${Math.max(0, iHP).toFixed(0)}\n`;
+    }
+
+    let win = mHP > 0;
+    document.getElementById('summary').innerHTML = `
+        <div class="stat"><span>Resultado:</span> <span class="${win?'win-text':'loss-text'}">${win?'VITÓRIA':'DERROTA'}</span></div>
+        <div class="stat"><span>Tempo:</span> <span>${hr} horas</span></div>
+        <div class="stat"><span>HP Final:</span> <span>${Math.max(0, mHP).toFixed(1)}</span></div>
+        <div class="stat"><span>Perda:</span> <span>~${Math.ceil((mHPMax-mHP)/20)} unidades</span></div>
+    `;
+    document.getElementById('log').innerText = log;
+}
+</script>
+</body>
+</html>
