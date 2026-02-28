@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BMS Supremacy 1914</title>
+
+<style>
+:root{
+--neon-blue:#00d2ff;
+--neon-green:#39ff14;
+--danger:#ff3131;
+--bg:#0a0b0d;
+--panel:#14171c;
+--border-glow: #1e252e;
+}
+
+body{
+margin:0;
+background:var(--bg);
+color:#fff;
+font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+padding:10px;
+}
+
+.main{
+max-width:900px;
+margin:auto;
+background:var(--panel);
+padding:15px;
+border-radius:12px;
+border: 1px solid var(--border-glow);
+box-shadow:0 10px 20px rgba(0,0,0,0.5);
+}
+
+h1{
+text-align:center;
+color:var(--neon-blue);
+letter-spacing:4px;
+font-size: 22px;
+margin-top: 0;
+text-transform: uppercase;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+}
+
+.card{
+background:rgba(255,255,255,0.03);
+padding:15px;
+border-radius:8px;
+border-left: 4px solid var(--border-glow);
+}
+
+.card-aliado { border-color: var(--neon-green); }
+.card-inimigo { border-color: var(--danger); }
+
+h3{
+margin-top:0;
+font-size:16px;
+color:#fff;
+text-transform: uppercase;
+}
+
+label{
+font-size:12px;
+color:#aaa;
+display:block;
+margin-top:10px;
+font-weight: bold;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin-top:5px;
+background:#000;
+border:1px solid #333;
+color:#fff;
+border-radius:5px;
+font-size:16px;
+box-sizing: border-box;
+}
+
+input:focus, select:focus {
+outline: none;
+border-color: var(--neon-blue);
+}
+
+button{
+margin-top:15px;
+padding:15px;
+width:100%;
+border:none;
+font-weight:bold;
+border-radius:6px;
+cursor:pointer;
+font-size:16px;
+text-transform: uppercase;
+transition: 0.2s;
+}
+
+button:active { transform: scale(0.98); }
+
+.btn-run{background:var(--neon-blue);color:#000;}
+.btn-run:hover{background:#00a3c4;}
+
+.btn-whats{background:#25D366;color:#000; margin-top: 10px;}
+.btn-whats:hover{background:#1da852;}
+
+#report{
+white-space:pre-wrap;
+background:#000;
+padding:15px;
+margin-top:20px;
+border-radius:6px;
+display:none;
+font-family: 'Courier New', monospace;
+font-size:13px;
+border: 1px solid var(--neon-blue);
+color: #e0e0e0;
+}
+
+@media(max-width:768px){
+.grid{grid-template-columns:1fr;}
+h1 { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="main">
+<h1>🛡️ BMS SUPREMACY</h1>
+
+<div class="grid">
+
+<div class="card card-aliado">
+<h3>🏳️ SUAS FORÇAS</h3>
+
+<label>Nação</label>
+<input id="myNation" placeholder="Ex: Alemanha">
+
+<label>⚔️ Postura</label>
+<select id="mPost">
+<option value="ATACANDO">ATACANDO</option>
+<option value="DEFENDENDO">DEFENDENDO</option>
+</select>
+
+<label>🛡️ HP Atual</label>
+<input type="number" id="mHP" placeholder="Ex: 340.8">
+
+<label>💥 Ataque Base</label>
+<input type="number" id="mAtk" placeholder="Poder de Fogo">
+</div>
+
+<div class="card card-inimigo">
+<h3>🏴 INIMIGO</h3>
+
+<label>Nação</label>
+<input id="iNation" placeholder="Ex: França">
+
+<label>⚔️ Postura</label>
+<select id="iPost">
+<option value="DEFENDENDO">DEFENDENDO</option>
+<option value="ATACANDO">ATACANDO</option>
+</select>
+
+<label>🛡️ HP Atual</label>
+<input type="number" id="iHP" placeholder="Ex: 67.7">
+
+<label>💥 Ataque Base</label>
+<input type="number" id="iAtk" placeholder="Poder de Fogo">
+</div>
+
+<div class="card" style="grid-column:1/-1;">
+<h3>🧱 MODIFICADORES</h3>
+
+<label>🏞️ Terreno</label>
+<select id="terrain">
+<option value="1">Plano</option>
+<option value="1.5">Floresta (+Defesa)</option>
+<option value="2">Montanha (Alto Bônus)</option>
+</select>
+
+<label>🧱 Forte (%)</label>
+<input type="number" id="fort" value="0">
+</div>
+
+</div>
+
+<button class="btn-run" onclick="simular()">⚔️ SIMULAR BATALHA</button>
+<button class="btn-whats" onclick="enviarWhats()">📲 ENVIAR PARA WHATSAPP</button>
+
+<div id="report"></div>
+
+</div>
+
+<script>
+function simular(){
+
+const get=(id)=>parseFloat(document.getElementById(id).value)||0;
+
+let myN=document.getElementById('myNation').value||"Aliados";
+let iN=document.getElementById('iNation').value||"Inimigo";
+
+let mHP=get('mHP');
+let iHP=get('iHP');
+
+if(mHP<=0||iHP<=0){alert("Por favor, insira um HP válido para ambos os lados.");return;}
+
+let mHPInit=mHP;
+let iHPInit=iHP;
+
+let mAtk=get('mAtk');
+let iAtk=get('iAtk');
+
+let terrain=parseFloat(document.getElementById('terrain').value)||1;
+let fort=get('fort')/100;
+
+let mPost=document.getElementById('mPost').value;
+let iPost=document.getElementById('iPost').value;
+
+let hora=0;
+let log="";
+
+// Lógica de simulação matemática
+while(mHP>0 && iHP>0 && hora<48){
+
+hora++;
+
+// Dano proporcional ao HP atual
+let mDano=mAtk*(mHP/mHPInit);
+let iDano=iAtk*(iHP/iHPInit);
+
+// Aplicação de modificadores de terreno e forte
+if(iPost==="DEFENDENDO"){
+mDano/=terrain;
+mDano*= (1-fort);
+}
+
+if(mPost==="DEFENDENDO"){
+iDano/=terrain;
+iDano*= (1-fort);
+}
+
+iHP-=mDano;
+mHP-=iDano;
+
+log+=`Hora ${hora.toString().padStart(2, '0')}: ${myN} ${Math.max(0,mHP).toFixed(1)} HP | ${iN} ${Math.max(0,iHP).toFixed(1)} HP\n`;
+}
+
+let resultado="EMPATE ⚖️";
+
+if(mHP>0 && iHP<=0) resultado="VITÓRIA ✅";
+if(iHP>0 && mHP<=0) resultado="DERROTA ❌";
+
+let relatorio=
+`🎖️ RELATÓRIO TÁTICO F.S.N 🎖️
+
+🚩 CONFLITO:
+${myN} (${mPost})
+VS
+${iN} (${iPost})
+
+⏱️ Duração: ${hora}h
+⚔️ Resultado: ${resultado}
+
+🛡️ HP Final:
+${myN}: ${Math.max(0,mHP).toFixed(1)} HP
+${iN}: ${Math.max(0,iHP).toFixed(1)} HP
+
+📋 LOG DE BATALHA:
+${log}
+----------------------------------
+[ TECNOLOGIA MILITAR F.S.N ]`;
+
+document.getElementById('report').innerText=relatorio;
+document.getElementById('report').style.display="block";
+
+// Rolar para o resultado no celular
+document.getElementById('report').scrollIntoView({behavior: "smooth"});
+
+window.relatorioFinal=relatorio;
+}
+
+function enviarWhats(){
+if(!window.relatorioFinal){alert("Simule uma batalha primeiro.");return;}
+let texto=encodeURIComponent(window.relatorioFinal);
+window.open("https://wa.me/?text="+texto,"_blank");
+}
+</script>
+
+</body>
+</html>
