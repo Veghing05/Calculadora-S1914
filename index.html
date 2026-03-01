@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F.N.S Coalition War System v6</title>
+
+<style>
+:root{
+  --bg:#0a0a0c;
+  --panel:#141417;
+  --border:#2a2a30;
+  --accent:#00ffa6;
+  --text:#e0e0e0;
+  --ally:#1aff8c;
+  --enemy:#ff4a4a;
+  --remove:#aa2c2c;
+  --secondary:#2a2a30;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Courier New", monospace;
+  margin:0;
+  padding:14px;
+}
+
+h1{
+  text-align:center;
+  font-size:20px;
+  color:var(--accent);
+  margin-bottom:4px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+}
+
+.subtitle{
+  text-align:center;
+  font-size:12px;
+  color:#888;
+  margin-bottom:20px;
+  text-transform:uppercase;
+}
+
+.box{
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:16px;
+  margin-bottom:16px;
+  border-radius:8px;
+}
+
+.frontTitle{
+  font-size:14px;
+  color:var(--accent);
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid var(--border);
+  padding-bottom:8px;
+}
+
+.ally-box{ border-left:4px solid var(--ally); }
+.enemy-box{ border-left:4px solid var(--enemy); }
+
+label{
+  font-size:11px;
+  color:#aaa;
+  text-transform:uppercase;
+  display:block;
+  margin-top:8px;
+  font-weight:bold;
+}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin:4px 0 8px 0;
+  background:#000;
+  border:1px solid var(--border);
+  color:white;
+  font-family:inherit;
+  box-sizing:border-box;
+  border-radius:4px;
+}
+
+input:focus, select:focus{
+  outline:1px solid var(--accent);
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  background:var(--accent);
+  color:#000;
+  font-weight:bold;
+  font-family:inherit;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-radius:4px;
+  transition:0.2s;
+}
+
+button:hover{
+  filter:brightness(1.1);
+}
+
+.action-btn{
+  margin-top:10px;
+}
+
+.btn-row{
+  display:flex;
+  gap:10px;
+}
+
+.remove-btn{
+  background:var(--remove);
+  color:white;
+  width:auto;
+  margin:0;
+  font-size:11px;
+  padding:6px 12px;
+}
+
+.invert-btn{
+  background:#ffaa00;
+  color:#000;
+  width:auto;
+  margin:0;
+  font-size:11px;
+  padding:6px 12px;
+}
+
+.secondary-btn{
+  background:var(--secondary);
+  color:var(--text);
+}
+
+#resultado{
+  margin-top:20px;
+  background:#000;
+  border:1px solid var(--accent);
+  padding:16px;
+  display:none;
+  white-space:pre-line;
+  font-size:13px;
+  color: #fff;
+  line-height:1.5;
+  border-radius:8px;
+}
+</style>
+</head>
+<body>
+
+<h1>F.N.S COALITION WAR SYSTEM</h1>
+<div class="subtitle">MULTI-FRONT COMBAT PROCESSOR V6</div>
+
+<div id="fronts"></div>
+
+<button onclick="addFront()" class="action-btn">+ ADICIONAR FRENTE</button>
+<button onclick="simular()" class="action-btn">⚔️ EXECUTAR OPERAÇÃO</button>
+<button class="secondary-btn action-btn" onclick="exportar()">📲 EXPORTAR RELATÓRIO</button>
+
+<div id="resultado"></div>
+
+<script>
+
+let frontCount=0;
+let finalReport="";
+
+function addFront(){
+    frontCount++;
+    let div=document.createElement("div");
+    div.className="box";
+    div.id="front"+frontCount;
+    div.innerHTML=`
+        <div class="frontTitle">
+          <span>📍 FRENTE ${frontCount}</span>
+          <div class="btn-row">
+            <button class="invert-btn" onclick="inverterFrente(${frontCount})">INVERTER</button>
+            <button class="remove-btn" onclick="removeFront(${frontCount})">REMOVER</button>
+          </div>
+        </div>
+        
+        <label>Local do Combate</label>
+        <input id="local${frontCount}" placeholder="Ex: Gaborone">
+        
+        <label>🧱 Redução do Forte (Defensor) %</label>
+        <input id="fort${frontCount}" type="number" value="0" placeholder="Ex: 50">
+        
+        <div class="ally-box box">
+            <b style="color:var(--ally)">🟩 FORÇA ALIADA</b>
+            <label>País</label>
+            <input id="aName${frontCount}">
+            <label>Postura</label>
+            <select id="aPost${frontCount}">
+                <option value="atacar">ATACANDO</option>
+                <option value="defender">DEFENDENDO</option>
+            </select>
+            <label>Tropas (Qtd)</label>
+            <input id="aQtd${frontCount}" type="number">
+            <label>HP TOTAL</label>
+            <input id="aHP${frontCount}" type="number">
+            <label>Dano TOTAL</label>
+            <input id="aDmg${frontCount}" type="number">
+        </div>
+        
+        <div class="enemy-box box">
+            <b style="color:var(--enemy)">🟥 FORÇA INIMIGA</b>
+            <label>País</label>
+            <input id="bName${frontCount}">
+            <label>Postura</label>
+            <select id="bPost${frontCount}">
+                <option value="defender">DEFENDENDO</option>
+                <option value="atacar">ATACANDO</option>
+            </select>
+            <label>Tropas (Qtd)</label>
+            <input id="bQtd${frontCount}" type="number">
+            <label>HP TOTAL</label>
+            <input id="bHP${frontCount}" type="number">
+            <label>Dano TOTAL</label>
+            <input id="bDmg${frontCount}" type="number">
+        </div>
+    `;
+    document.getElementById("fronts").appendChild(div);
+}
+
+function removeFront(id){
+    let el=document.getElementById("front"+id);
+    if(el) el.remove();
+}
+
+function inverterFrente(id){
+    let fields = ["Name", "Qtd", "HP", "Dmg", "Post"];
+    fields.forEach(f => {
+        let a = document.getElementById("a" + f + id);
+        let b = document.getElementById("b" + f + id);
+        let temp = a.value;
+        a.value = b.value;
+        b.value = temp;
+    });
+}
+
+function simular(){
+    let totalInitA=0,totalInitB=0;
+    let totalFinalA=0,totalFinalB=0;
+    let relatorioCompleto="";
+    let simulou = false;
+
+    for(let i=1;i<=frontCount;i++){
+        let f=document.getElementById("front"+i);
+        if(!f) continue;
+
+        const v=id=>document.getElementById(id).value;
+        const n=id=>parseFloat(v(id))||0;
+
+        let local=v("local"+i)||"DESCONHECIDO";
+        let na=v("aName"+i)||"ALIADOS";
+        let nb=v("bName"+i)||"INIMIGO";
+        let qa=n("aQtd"+i), qb=n("bQtd"+i);
+        let ha=n("aHP"+i), hb=n("bHP"+i);
+        let da=n("aDmg"+i), db=n("bDmg"+i);
+        let postA=v("aPost"+i);
+        let postB=v("bPost"+i);
+        let fortLevel=n("fort"+i)/100;
+
+        if(qa<=0||qb<=0||ha<=0||hb<=0) continue;
+        if(postA===postB) continue; 
+        
+        simulou = true;
+        let hpA=ha;
+        let hpB=hb;
+        let h=0;
+        let log="";
+
+        let propA=ha/qa;
+        let propB=hb/qb;
+
+        while(hpA>0 && hpB>0 && h<48){
+            h++;
+            
+            let dA=da*(hpA/ha);
+            let dB=db*(hpB/hb);
+
+            if(postA==="defender") dB*=(1-fortLevel);
+            if(postB==="defender") dA*=(1-fortLevel);
+
+            hpB-=dA;
+            hpA-=dB;
+            
+            hpA=Math.max(0,hpA);
+            hpB=Math.max(0,hpB);
+
+            let tA=Math.ceil(hpA/propA);
+            let tB=Math.ceil(hpB/propB);
+
+            log+=`H${String(h).padStart(2,"0")} ➔ ${tA} vs ${tB}\n`;
+        }
+
+        let finalA=Math.ceil(hpA/propA);
+        let finalB=Math.ceil(hpB/propB);
+
+        totalInitA+=qa;
+        totalInitB+=qb;
+        totalFinalA+=finalA;
+        totalFinalB+=finalB;
+
+        let perdasA=qa-finalA;
+        let perdasB=qb-finalB;
+
+        let vencedor="⚖️ EMPATE";
+        if(finalA>finalB) vencedor="🏆 "+na.toUpperCase();
+        else if(finalB>finalA) vencedor="🏆 "+nb.toUpperCase();
+
+        relatorioCompleto+=
+`⚔️ RELATÓRIO DE COMBATE
+📍 Local: ${local.toUpperCase()}
+━━━━━━━━━━━━━━━━━━
+🟩 ${na.toUpperCase()} ➔ ${finalA}/${qa} (-${perdasA})
+HP: ${Math.ceil(hpA)}
+
+🟥 ${nb.toUpperCase()} ➔ ${finalB}/${qb} (-${perdasB})
+HP: ${Math.ceil(hpB)}
+━━━━━━━━━━━━━━━━━━
+RESULTADO: ${vencedor}
+DURAÇÃO: ${h}h (${h} ROUNS)
+━━━━━━━━━━━━━━━━━━
+LOG:
+${log}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+    }
+
+    if(!simulou){
+        alert("Preencha os dados corretamente.");
+        return;
+    }
+
+    relatorioCompleto+=
+`📊 RESUMO GERAL DA OPERAÇÃO
+━━━━━━━━━━━━━━━━━━
+ALIADOS: ${totalFinalA}/${totalInitA} (-${totalInitA-totalFinalA})
+INIMIGOS: ${totalFinalB}/${totalInitB} (-${totalInitB-totalFinalB})
+━━━━━━━━━━━━━━━━━━`;
+
+    finalReport=relatorioCompleto;
+    let r=document.getElementById("resultado");
+    r.style.display="block";
+    r.innerText=finalReport;
+    r.scrollIntoView({behavior:"smooth"});
+}
+
+function exportar(){
+    if(!finalReport){alert("Execute a simulação primeiro.");return;}
+    window.open("https://wa.me/?text="+encodeURIComponent(finalReport));
+}
+
+addFront();
+
+</script>
+
+</body>
+</html>
